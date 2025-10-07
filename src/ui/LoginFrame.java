@@ -2,12 +2,12 @@ package ui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 
 public class LoginFrame extends JFrame {
     public LoginFrame() {
         setTitle("图书管理系统 - 登录");
-        setSize(350, 200);
+        //setSize(350, 200);
+        setBounds(100, 100, 450, 300);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -40,7 +40,7 @@ public class LoginFrame extends JFrame {
             if (user.equals("admin") && pass.equals("123456")) {
                 JOptionPane.showMessageDialog(this, "登录成功！");
                 dispose();
-                new MainFrame(); // 打开主界面
+                new AdminMainFrame(); // 打开主界面
             } else {
                 JOptionPane.showMessageDialog(this, "用户名或密码错误！");
             }
