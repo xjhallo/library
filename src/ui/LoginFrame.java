@@ -1,9 +1,14 @@
 package ui;
-
+import java.sql.*;
 import javax.swing.*;
 import java.awt.*;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 
 public class LoginFrame extends JFrame {
+
+    private static final String URL = "jdbc:sqlite:user.db";
+
     public LoginFrame() {
         setTitle("图书管理系统 - 登录");
         //setSize(350, 200);
@@ -54,7 +59,35 @@ public class LoginFrame extends JFrame {
 
         setVisible(true);
     }
+    public static String verifyLogin(int id, String pwd) {
+        String sql = "select * from userdata where id = ? and password = ?";
+        String role = null;
 
+        try (
+                Connection conn = DriverManager.getConnection(URL);
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            // 给SQL中的第一个占位符设置id值（整数类型）
+            ps.setInt(1, id);
+            // 给SQL中的第二个占位符设置密码值
+            ps.setString(2, pwd);
+
+            // 执行查询，获取结果集
+            ResultSet rs = ps.executeQuery();
+
+            // 判断结果集中是否有数据
+            if (rs.next()) {
+                // 从结果集中获取role字段的值
+                role = rs.getString("role");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("登录验证出错: " + e.getMessage());
+        }
+
+        // 返回角色
+        return role;
+    }
     public static void main(String[] args) {
         new LoginFrame();
     }
