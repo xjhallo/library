@@ -4,10 +4,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-
 public class LoginFrame extends JFrame {
 
-    private static final String URL = "jdbc:sqlite:user.db";
+    private static final String URL = "jdbc:sqlite:D:/a3575/SQLite/Data/user.db";
 
     public LoginFrame() {
         setTitle("图书管理系统 - 登录");
@@ -42,8 +41,13 @@ public class LoginFrame extends JFrame {
         loginButton.addActionListener(e -> {
             String user = userField.getText();
             String pass = new String(passField.getPassword());
-            boolean isReader = user.equals("reader") && pass.equals("reader123");
-            boolean isAdmin = user.equals("admin") && pass.equals("admin123");
+            String role = verifyLogin(user, pass);
+            boolean isReader = false;
+            boolean isAdmin = false;
+            if(role != null) {
+                isReader = role.equals("user");
+                isAdmin = role.equals("admin");
+            }
             if (isReader) {
                 JOptionPane.showMessageDialog(this, "读者登录成功！");
                 dispose();
@@ -59,16 +63,16 @@ public class LoginFrame extends JFrame {
 
         setVisible(true);
     }
-    public static String verifyLogin(int id, String pwd) {
-        String sql = "select * from userdata where id = ? and password = ?";
+    public static String verifyLogin(String id, String pwd) {
+        String sql = "select * from userdata where ID = ? and password = ?";
         String role = null;
-//尝试推送到GitHub
+
         try (
                 Connection conn = DriverManager.getConnection(URL);
                 PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-            // 给SQL中的第一个占位符设置id值（整数类型）
-            ps.setInt(1, id);
+            // 给SQL中的第一个占位符设置id值（text类型）
+            ps.setString(1, id);
             // 给SQL中的第二个占位符设置密码值
             ps.setString(2, pwd);
 
