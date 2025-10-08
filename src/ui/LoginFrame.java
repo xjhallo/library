@@ -37,10 +37,16 @@ public class LoginFrame extends JFrame {
         loginButton.addActionListener(e -> {
             String user = userField.getText();
             String pass = new String(passField.getPassword());
-            if (user.equals("admin") && pass.equals("123456")) {
-                JOptionPane.showMessageDialog(this, "登录成功！");
+            boolean isReader = user.equals("reader") && pass.equals("reader123");
+            boolean isAdmin = user.equals("admin") && pass.equals("admin123");
+            if (isReader) {
+                JOptionPane.showMessageDialog(this, "读者登录成功！");
                 dispose();
-                new AdminMainFrame(); // 打开主界面
+                new ReaderMainFrame(); // 打开读者主界面
+            } else if(isAdmin) {
+                JOptionPane.showMessageDialog(this, "管理员登录成功！");
+                dispose();
+                new AdminMainFrame(); //打开管理员主界面
             } else {
                 JOptionPane.showMessageDialog(this, "用户名或密码错误！");
             }
