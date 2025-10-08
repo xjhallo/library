@@ -62,7 +62,7 @@ public class LoginFrame extends JFrame {
     public static String verifyLogin(int id, String pwd) {
         String sql = "select * from userdata where id = ? and password = ?";
         String role = null;
-
+//尝试推送到GitHub
         try (
                 Connection conn = DriverManager.getConnection(URL);
                 PreparedStatement ps = conn.prepareStatement(sql)
