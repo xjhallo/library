@@ -37,33 +37,33 @@ public class LoginFrame extends JFrame {
 
         add(panel);
 
+        // 给密码框绑定回车键事件
+        passField.addActionListener(e -> {
+            // 当在密码框按下Enter时，触发登录逻辑
+            String user = userField.getText();
+            String pass = new String(passField.getPassword());
+
+            String role = getRole(user, pass);
+            roleCheck(role);
+
+        });
+
+// 给用户名框绑定回车键事件（按回车自动聚焦到密码框）
+        userField.addActionListener(e -> {
+            passField.requestFocus(); // 光标跳到密码框
+        });
+
         // 登录按钮事件
         loginButton.addActionListener(e -> {
             String user = userField.getText();
             String pass = new String(passField.getPassword());
-            String role = verifyLogin(user, pass);
-            boolean isReader = false;
-            boolean isAdmin = false;
-            if(role != null) {
-                isReader = role.equals("user");
-                isAdmin = role.equals("admin");
-            }
-            if (isReader) {
-                JOptionPane.showMessageDialog(this, "读者登录成功！");
-                dispose();
-                new ReaderMainFrame(); // 打开读者主界面
-            } else if(isAdmin) {
-                JOptionPane.showMessageDialog(this, "管理员登录成功！");
-                dispose();
-                new AdminMainFrame(); //打开管理员主界面
-            } else {
-                JOptionPane.showMessageDialog(this, "用户名或密码错误！");
-            }
+            String role = getRole(user, pass);
+            roleCheck(role);
         });
 
         setVisible(true);
     }
-    public static String verifyLogin(String id, String pwd) {
+    public static String getRole(String id, String pwd) {
         String sql = "select * from userdata where ID = ? and password = ?";
         String role = null;
 
@@ -92,6 +92,26 @@ public class LoginFrame extends JFrame {
         // 返回角色
         return role;
     }
+    public void roleCheck(String role) {
+        boolean isReader = false;
+        boolean isAdmin = false;
+        if(role != null) {
+            isReader = role.equals("user");
+            isAdmin = role.equals("admin");
+        }
+        if (isReader) {
+            JOptionPane.showMessageDialog(this, "用户登录成功！");
+            dispose();
+            new ReaderMainFrame(); // 打开读者主界面
+        } else if(isAdmin) {
+            JOptionPane.showMessageDialog(this, "管理员登录成功！");
+            dispose();
+            new AdminMainFrame(); //打开管理员主界面
+        } else {
+            JOptionPane.showMessageDialog(this, "用户名或密码错误！");
+        }
+    }
+
     public static void main(String[] args) {
         new LoginFrame();
     }
