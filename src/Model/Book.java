@@ -18,7 +18,11 @@ public class Book {
         this.bookCategory = category;
         this.bookAvailable = available;
     }
-
+    public Book(String name, String author, String publisher) {
+        this.bookName = name;
+        this.bookAuthor = author;
+        this.bookPublisher = publisher;
+    }
     public String getBookName() {
         return bookName;
     }

@@ -37,7 +37,7 @@ public class BookDao {
 
             // 3. 检查图书是否已存在
             checkStmt.setString(1, book.getBookName());
-            checkStmt.setString(2, book.getBookPublisher()); // 对应修正后的publisher字段
+            checkStmt.setString(2, book.getBookPublisher());
             checkStmt.setString(3, book.getBookAuthor());
 
             // ResultSet也用try-with-resources，确保自动关闭
@@ -87,6 +87,51 @@ public class BookDao {
         }
 
         // 返回最终的总库存
+        return finalTotal;
+    }
+
+    public int deleteBook(Book book, int delNum) {
+        if (book == null) {
+            return -1;
+        }
+        if(delNum <= 0) {
+            return -1;
+        }
+        int finalTotal = 0;
+        try (Connection conn = DriverManager.getConnection(URL);
+             PreparedStatement checkStmt = conn.prepareStatement(CHECK_SQL);
+             PreparedStatement updateStmt = conn.prepareStatement(UPDATE_SQL);) {
+            //检查是否存在删除图书
+            checkStmt.setString(1, book.getBookName());
+            checkStmt.setString(2, book.getBookPublisher());
+            checkStmt.setString(3, book.getBookAuthor());
+            try (ResultSet checkRs = checkStmt.executeQuery()) {
+                if(checkRs.next()) {
+                    //存在该图书，执行删除逻辑
+                    int existingTotal = checkRs.getInt("totalBooks");
+                    int existingAvailable = checkRs.getInt("availableBooks");
+                    finalTotal = existingTotal - delNum;
+                    int newAvailable = existingAvailable - delNum;
+                    book.setTotalBooks(finalTotal);
+                    book.setAvailableBooks(newAvailable);
+                    boolean newStatus = newAvailable >= 0;
+                    book.setBookAvailable(newStatus); // 更新状态
+
+                    //执行更新语句
+                    updateStmt.setInt(1, -delNum); // 删除的总数量
+                    updateStmt.setInt(2, -delNum); // 减少的可借数量
+                    updateStmt.setString(3, book.getBookName());
+                    updateStmt.setString(4, book.getBookPublisher());
+                    updateStmt.setString(5, book.getBookAuthor());
+                    updateStmt.executeUpdate();
+                } else {
+                    //不存在要删除的书
+                    return -1;
+                }
+            }
+        } catch (SQLException e) {
+
+        }
         return finalTotal;
     }
 }
