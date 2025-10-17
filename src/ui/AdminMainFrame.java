@@ -255,8 +255,18 @@ public class AdminMainFrame extends JFrame {
             }
             Book book = new Book(bookName, bookAuthor, bookPublisher);
             BookDao manager = new BookDao();
-            manager.deleteBook(book, delNumber);
+            int success = manager.deleteBook(book, delNumber);
+            if(success >= 0) {
+                JOptionPane.showMessageDialog(this, "图书删除成功", "成功", JOptionPane.INFORMATION_MESSAGE);
+                // 清空输入框并返回主面板
+                clearInputFields();
+                showAddBookPanel(); // 可以选择返回主面板或保持在当前面板
+            } else {
+                JOptionPane.showMessageDialog(this, "图书删除失败", "失败", JOptionPane.ERROR_MESSAGE);
+            }
         } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "数量必须是数字", "输入错误", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "删除图书时发生错误: " + ex.getMessage(),
                     "错误", JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
