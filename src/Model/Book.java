@@ -6,23 +6,22 @@ public class Book {
     String bookPublisher;
     String bookDescription;
     String bookCategory;
-    boolean  bookAvailable = true;
     String bookStatus = "在库";
     int totalBooks = 1;       // 该图书的总副本数（实例变量，非static）
     int availableBooks = 1;  // 可借的副本数（动态变化）
-    public Book(String name, String author, String publisher, String description, String category, boolean available) {
+    public Book(String name, String author, String publisher, String description, String category) {
         this.bookName = name;
         this.bookAuthor = author;
         this.bookPublisher = publisher;
         this.bookDescription = description;
         this.bookCategory = category;
-        this.bookAvailable = available;
     }
     public Book(String name, String author, String publisher) {
         this.bookName = name;
         this.bookAuthor = author;
         this.bookPublisher = publisher;
     }
+    public Book() {}
     public String getBookName() {
         return bookName;
     }
@@ -55,19 +54,12 @@ public class Book {
         this.bookDescription = bookDescription;
     }
 
-    public boolean getBookAvailable() {
-        return bookAvailable;
-    }
-
-    public void setBookAvailable(boolean bookAvailable) {
-        this.bookAvailable = bookAvailable;
-    }
 
     public String getBookStatus() {
-        if(bookAvailable)
-            return "在馆";
+        if(availableBooks > 0)
+            return "有余量";
         else
-            return "外借";
+            return "全外借";
     }
     public int getAvailableBooks() {
         return availableBooks;

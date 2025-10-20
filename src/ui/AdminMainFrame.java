@@ -211,7 +211,7 @@ public class AdminMainFrame extends JFrame {
             }
 
             // 创建图书对象
-            Book book = new Book(bookName, bookAuthor, bookPublisher, "这是一本书", "文学类", true);
+            Book book = new Book(bookName, bookAuthor, bookPublisher, "这是一本书", "文学类");
 
             // 调用DAO添加图书
             BookDao manager = new BookDao();
