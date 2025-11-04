@@ -5,7 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.util.List;
 public class AdminMainFrame extends JFrame {
     // 将文本框定义为类成员，方便在事件监听器中访问
     private JTextField nameField;
@@ -63,6 +63,13 @@ public class AdminMainFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 showDelBookPanel();
+            }
+        });
+        //查询图书按钮事件
+        searchBookButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showSearchBookPanel();
             }
         });
         // 添加主面板到窗口
@@ -187,6 +194,47 @@ public class AdminMainFrame extends JFrame {
         mainPanel.revalidate();
         mainPanel.repaint();
     }
+
+    private void showSearchBookPanel() {
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new GridLayout(5, 2, 10, 10));
+        infoPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JLabel nameLabel = new JLabel("书名：");
+        nameField = new JTextField();
+        //只查询名字即可
+        JButton confirmButton = new JButton("确认查询");
+        JButton backButton = new JButton("返回");
+        infoPanel.add(nameLabel);
+        infoPanel.add(nameField);
+        infoPanel.add(confirmButton);
+        infoPanel.add(backButton);
+        //确认查询按钮事件
+        confirmButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleSearchBook();//处理查询图书逻辑
+            }
+        });
+        //返回按钮事件
+        backButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 切换回主面板
+                mainPanel.removeAll();
+                mainPanel.add(mainContentPanel, BorderLayout.CENTER);
+                // 清除单选按钮的选中状态
+                buttonGroup.clearSelection();
+                mainPanel.revalidate();
+                mainPanel.repaint();
+            }
+        });
+        // 切换显示输入面板
+        mainPanel.removeAll();
+        mainPanel.add(infoPanel, BorderLayout.CENTER);
+        mainPanel.revalidate();
+        mainPanel.repaint();
+    }
+
     // 处理添加图书的方法
     private void handleAddBook() {
         try {
@@ -279,5 +327,37 @@ public class AdminMainFrame extends JFrame {
         if (publisherField != null) publisherField.setText("");
         if (numberField != null) numberField.setText("");
     }
+    private void handleSearchBook() {
+        try {
+            String bookName = nameField.getText().trim();
+            Book book = new Book(bookName);
+            BookDao manager = new BookDao();
+            List<Book> books = manager.searchBook(book);
+            if(books == null || books.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "未找到该图书信息", "查询结果", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            // 构建查询结果信息
+            StringBuilder resultMsg = new StringBuilder();
+            resultMsg.append("找到以下图书信息：\n\n");
+            for (Book b : books) {
+                resultMsg.append("书名：").append(b.getBookName()).append("\n")
+                        .append("作者：").append(b.getBookAuthor()).append("\n")
+                        .append("出版社：").append(b.getBookPublisher()).append("\n")
+                        .append("总数量：").append(b.getTotalBooks()).append("\n")
+                        .append("可借数量：").append(b.getAvailableBooks()).append("\n\n");
+            }
 
+            // 显示查询结果
+            JOptionPane.showMessageDialog(this,
+                    resultMsg.toString(),
+                    "查询成功",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "查询图书时发生错误: " + ex.getMessage(),
+                    "错误", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
+    }
 }

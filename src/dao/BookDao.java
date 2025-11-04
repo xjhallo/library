@@ -6,13 +6,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BookDao {
     // 数据库连接地址
     private static final String URL = "jdbc:sqlite:D:/a3575/SQLite/Data/user.db";
 
     // 1. 拆分SQL常量：为删除单独定义“减少库存”的SQL，语义更清晰
-    private static final String CHECK_SQL = "SELECT totalBooks, availableBooks FROM Book WHERE name = ? AND publisher = ? AND author = ?";
+    private static final String CHECK_SQL_BY_PART_INFO = "SELECT name, publisher, author, status, borrowerId, borrowerName, totalBooks, availableBooks FROM Book WHERE name = ?";
+    private static final String CHECK_SQL_BY_FULL_INFO = "SELECT name, publisher, author, status, borrowerId, borrowerName, availableBooks FROM Book WHERE name = ? AND publisher = ? AND author = ?";
     private static final String ADD_STOCK_SQL = "UPDATE Book SET totalBooks = totalBooks + ?, availableBooks = availableBooks + ? WHERE name = ? AND publisher = ? AND author = ?";
     private static final String DELETE_STOCK_SQL = "UPDATE Book SET totalBooks = totalBooks - ?, availableBooks = availableBooks - ? WHERE name = ? AND publisher = ? AND author = ?";
     private static final String INSERT_SQL = "INSERT INTO Book (name, publisher, author, status, borrowerId, borrowerName, availableBooks, totalBooks) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -31,7 +34,7 @@ public class BookDao {
         int finalTotal = 0;
 
         try (Connection conn = DriverManager.getConnection(URL);
-             PreparedStatement checkStmt = conn.prepareStatement(CHECK_SQL);
+             PreparedStatement checkStmt = conn.prepareStatement(CHECK_SQL_BY_FULL_INFO);
              PreparedStatement updateStmt = conn.prepareStatement(ADD_STOCK_SQL); // 改用“增加库存”SQL
              PreparedStatement insertStmt = conn.prepareStatement(INSERT_SQL)) {
 
@@ -91,7 +94,7 @@ public class BookDao {
         int finalTotal = 0;
 
         try (Connection conn = DriverManager.getConnection(URL);
-             PreparedStatement checkStmt = conn.prepareStatement(CHECK_SQL);
+             PreparedStatement checkStmt = conn.prepareStatement(CHECK_SQL_BY_FULL_INFO);
              // 2. 改用“减少库存”的SQL，而非复用增加的SQL
              PreparedStatement updateStmt = conn.prepareStatement(DELETE_STOCK_SQL)) {
 
@@ -138,30 +141,34 @@ public class BookDao {
     }
 
     // 查询图书（修复空指针异常，补充错误处理）
-    public Book searchBook(Book book) {
+    public List<Book> searchBook(Book book) {
+        List<Book> books = new ArrayList<>();
         if (book == null) {
-            return null;
+            return books;
         }
 
         Book res = null; // 初始为null
 
         try (Connection conn = DriverManager.getConnection(URL);
-             PreparedStatement checkStmt = conn.prepareStatement(CHECK_SQL)) {
+             PreparedStatement checkStmtByFullInfo = conn.prepareStatement(CHECK_SQL_BY_PART_INFO)) {
 
-            checkStmt.setString(1, book.getBookName());
-            checkStmt.setString(2, book.getBookPublisher());
-            checkStmt.setString(3, book.getBookAuthor());
+            checkStmtByFullInfo.setString(1, book.getBookName());
 
-            try (ResultSet checkRs = checkStmt.executeQuery()) {
+            try (ResultSet checkRs = checkStmtByFullInfo.executeQuery()) {
                 // 7. 修复空指针：查询到结果后，先创建Book实例再赋值
-                if (checkRs.next()) {
+                while (checkRs.next()) {
+                    book.setBookName(checkRs.getString("name"));
+                    book.setBookPublisher(checkRs.getString("publisher"));
+                    book.setBookAuthor(checkRs.getString("author"));
+                    book.setTotalBooks(checkRs.getInt("totalBooks"));
+                    book.setAvailableBooks(checkRs.getInt("availableBooks"));
                     res = new Book(); // 关键：初始化res对象
                     res.setBookName(book.getBookName());
                     res.setBookPublisher(book.getBookPublisher());
                     res.setBookAuthor(book.getBookAuthor());
-                    // 8. 补充：从数据库获取库存数量（原逻辑用了传入book的数量，错误）
                     res.setTotalBooks(checkRs.getInt("totalBooks"));
                     res.setAvailableBooks(checkRs.getInt("availableBooks"));
+                    books.add(res);
                 }
             }
         } catch (SQLException e) {
@@ -169,7 +176,7 @@ public class BookDao {
             e.printStackTrace();
             throw new RuntimeException("查询图书失败：" + e.getMessage(), e);
         }
-        return res;
+        return books;
     }
 
 }
